@@ -1,0 +1,55 @@
+#!/bin/bash
+
+if [ ${#} -ne 2 ]; then
+        echo "ERROR: the number of program is not 2" >&2
+        exit 1
+fi
+
+if [ ! -r "$1" ]; then
+        echo "ERROR: $1 is not readable" >&2
+        exit 1
+fi
+
+if [ ! -x "$2" ]; then
+        echo "ERROR: $2 is not executable" >&2
+        exit 1
+fi
+
+x=0
+
+for Test in $(cat $1); do
+        if [ ! -e ${Test}.out -o -w ${Test}.out ]; then
+
+                if [ ! -e ${Test}.args ]; then
+
+                        if [ -r ${Test}.in ]; then
+                                $2 <${Test}.in >${Test}.out
+                        elif [! -e ${Test}.in]; then
+                                $2 > ${Test}.out
+                        else
+                                echo "ERROR: ${Test}.in is not readable" >&2
+                                x=1
+                        fi
+
+                elif [ -r ${Test}.args ]; then
+
+                        if [ -r ${Test}.in ]; then
+                                $2 $(cat ${Test}.args) <${Test}.in >${Test}.out
+                        elif [ ! -e ${Test}.in ]; then
+                                $2 $(cat ${Test}.args) >${Test}.out
+                        else
+                                echo "ERROR: ${Test}.in is not readable" >&2
+                                x=1
+                        fi
+
+                else
+                        echo "ERROR: ${Test}.args is not readable" >&2
+                        x=1
+                fi
+        else
+                echo "ERROR: ${Test}.out is not writable" >&2
+                x=1
+        fi
+done
+
+exit ${x}

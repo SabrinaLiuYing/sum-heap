@@ -1,0 +1,19 @@
+addchild 40
+addchild 9
+parent
+addchild 8
+parent
+addchild 22
+parent
+parent
+addchild 45
+addchild 23
+addchild 10
+addchild 4
+parent
+addchild 5
+parent
+swap 0 2
+parent
+parent
+swap 0

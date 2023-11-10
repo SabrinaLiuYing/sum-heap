@@ -1,0 +1,78 @@
+#!/bin/bash
+
+if [ ${#} -ne 2 ]; then
+        echo "ERROR: the numbers of program is not equals to 2" >&2
+        exit 1
+fi
+
+if [ ! -r "$1" ]; then
+        echo "ERROR: the file is unreadable" >&2
+        exit 1
+fi
+
+if [ ! -x "$2" ]; then
+        echo "ERROR: the program is non-executable" >&2
+        exit 1
+fi
+
+x=0
+
+for Test in $(cat $1); do
+
+        actual="mktemp"
+
+        if [ -r ${Test}.out ]; then
+
+                if [ ! -e ${Test}.args ]; then
+
+                        if [ ! -e ${Test}.in ]; then
+                                $2 >${actual}
+                        elif [ -r  ${Test}.in ]; then
+                                $2 <${Test}.in >${actual}
+                        else
+                                echo "ERROR: ${Test}.in is not readable"
+                                x=1
+                        fi
+
+                elif [ -r ${Test}.args ]; then
+
+                        if [ ! -e ${Test}.in ]; then
+                                $2 $(cat ${Test}.args) >${actual}
+                        elif [ -r  ${Test}.in ]; then
+                                $2 $(cat ${Test}.args) <${Test}.in >${actual}
+                        else
+                                echo "ERROR: ${Test}.in is not readable"
+                                x=1
+                        fi
+
+                else
+                         echo "ERROR: ${Test}.args is not readable" >&2
+                         x=1
+                fi
+
+                diff ${Test}.out ${actual} >/dev/null
+                if [ ${?} -ne 0 ]; then
+                        echo "Test failed: ${Test}"
+                        echo "Args:"
+                        if [ -e ${Test}.args ]; then
+                                cat ${Test}.args
+                        fi
+                        echo "Input:"
+                        if [ -r ${Test}.in ]; then
+                                cat ${Test}.in
+                        fi
+                        echo "Expected:"
+                        cat ${Test}.out
+                        echo "Actual:"
+                        cat ${actual}
+                fi
+
+                rm ${actual}
+
+        else
+                echo "ERROR: ${Test}.out is not readable or does not exsit" >&2
+                x=1
+        fi
+done
+
+exit ${x}
